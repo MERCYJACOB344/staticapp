@@ -1,0 +1,19 @@
+{
+    "configId": "airframe",
+    "configData": [
+        {"model": "Anafi Thermal", "sensors" : ["(attached)"]},
+        {"model": "Falcon 8+", "sensors" : ["Sony A7R","Panasonic Lumix & Thermal"]},
+        {"model": "Inspire 2", "sensors" : ["Zenmuse X5S"]},
+        {"model": "Matrice 300 RTK", "sensors" : ["Zenmuse H20T", "TruView 515 LiDAR", "Zenmuse P1", "Zenmuse L1"]},
+        {"model": "Mavic 2 Pro", "sensors" : ["(attached)"]},
+        {"model": "Mavic 2 Zoom", "sensors" : ["(attached)"]},
+        {"model": "Nova F7200 AE", "sensors" : ["(attached)"]},
+        {"model": "Phantom 4", "sensors" : ["(attached)"]},
+        {"model": "Phantom 4 Pro", "sensors" : ["(attached)"]},
+        {"model": "Phantom 4 Pro RTK", "sensors" : ["(attached)"]},
+        {"model": "Phantom 4 Pro v2.0", "sensors" : ["(attached)"]},
+        {"model": "Skydio 2", "sensors" : ["(attached)"]},
+        {"model": "Skydio X2", "sensors" : ["(attached)"]}
+    ]
+}
+

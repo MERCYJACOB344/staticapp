@@ -1,0 +1,15 @@
+{
+    "group": "pilot",
+    "email": "John.Drone@mbakerintl.com",
+    "fcrData": {
+        "name": "John Drone",
+        "email": "John.Drone@mbakerintl.com",
+        "faaNumber": "12345",
+        "company": "Michael Baker Intl",
+        "latestTestDate": "01/01/2023",
+        "group": "pilot",
+        "status": "Active",
+        "createdDate": "2023-02-07T22:01:45Z",
+        "updatedDate": "2023-02-07T22:01:45Z"
+    }
+}

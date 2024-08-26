@@ -1,0 +1,143 @@
+{
+    "missionName": "IR-15 Bridge Inspection",
+    "missionType": "Bridge Inspection",
+    "missionLocation": "Bridge Inspection",
+    "picCertificateNumber": "4560407",
+    "latestTestDate": "12/21/2022",
+    "fcrStatus": "Approved",
+    "estimateFlightDate": "12/21/2022",
+    "projectNumber": "187838",
+    "projectTask": "02.2",
+    "projectManager": "Luke McMahen",
+    "latitude": 40.730610,
+    "longitude": -73.935242,
+    "mapZoom": 17,
+    "streetviewHeading": 34,
+    "streetviewPitch": 10,
+    "shape": "",
+    "requestLocationReviewStatus": false,
+    "requestLocationReviewComment": "",
+    "projectDeliverablesReviewStatus": false,
+    "projectDeliverablesReviewComment": "",
+    "siteHazardsReviewStatus": false,
+    "siteHazardsReviewComment": "",
+    "airspaceAssessmentReviewStatus": false,
+    "airspaceAssessmentReviewComment": "",
+    "emergencyPlanningReviewStatus": false,
+    "emergencyPlanningReviewComment": "",
+    "equipmentReviewStatus": false,
+    "equipmentReviewComment": "",
+    "riskAssessmentReviewStatus": false,
+    "riskAssessmentReviewComment": "",
+    "uploadReviewStatus": false,
+    "uploadReviewComment": "",
+    "projectDetails": "Weekly progress photo/video flight in zones B, C, and D in Additional Image #1",
+    "projectDeliverables": [
+        "DTM",
+        "Edited Video",
+        "Raw Inspection Photos",
+        "Construction progress photos and video"
+    ],
+    "siteHazards": [
+        "Eletric Lines",
+        "Radio/Cell Tower",
+        "Traffic",
+        "Construction Vehicles, possibility of aerial applicators"
+    ],
+    "airspaceAssessment": "Class G at 0-400 AGL",
+    "airspaceClassification": "Class G",
+    "projectElevation": "400' AGL",
+    "sectionalChart": {
+        "confirm": true,
+        "adjustCoordinates": false,
+        "sectionalOrTACChartImage": ""
+    },
+    "airportProximity": [
+        {
+            "airportId": "GLH",
+            "airportName": "Greenville Mid-Delta Airport",
+            "distanceNm": 7,
+            "heading": 144,
+            "airportManager": "Airport Manager",
+            "phone": "662-334-3121"
+        },
+        {
+            "airportId": "MS30",
+            "airportName": "Abide Airpark Airport",
+            "distanceNm": 7,
+            "heading": 218,
+            "airportManager": "Airport Manager",
+            "phone": "662-378-2282"
+        }
+    ],
+    "airframe": "Matrice 300",
+    "sensor": "Sensor",
+    "missionFlightSoftware": "Pilot 2",
+    "emergencySitePlan": "Family Medical Center, 1467 MS-1 S, Greenville, MS 38701",
+    "emergencyLocationImage": "",
+    "googleSiteNadirImage": "",
+    "googleObliqueImage": "",
+    "additionalImages": [],
+    "riskAssesment": {
+        "crew": {
+            "experienceLevel": 3,
+            "flightCurrency": 1,
+            "illness": 1,
+            "alcoholDrugsMedicationUse": 1,
+            "outsidePhysiologicalStressorsProper": 1,
+            "rest": 1,
+            "sunburn": 1,
+            "dehydration": 1,
+            "avgSrmScoreCrew": 1.75
+        },
+        "environment": {
+            "terrain": 1,
+            "obstacles": 2,
+            "missionElevation": 1,
+            "ceiling": 1,
+            "visibility": 1,
+            "winds": 2,
+            "outsideAirTemperature": 1,
+            "faaAirspace": 1,
+            "avgSrmScoreEnvironment": 1.25
+        },
+        "equipment": {
+            "autopilotCatastrophicFailure": 1,
+            "autopilotincorrectLogic": 1,
+            "controlSurfaceFailure": 1,
+            "motorFailure": 1,
+            "dataLinkFailure": 1,
+            "maintenanceStatusOfAircraft": 1,
+            "gpsLoss": 1,
+            "avgSrmScoreEquipment": 1
+        },
+        "operations": {
+            "communication": 2,
+            "scale": 2,
+            "complexity": 1,
+            "automation": 1,
+            "groundOperations": 2,
+            "launchAndRecovery": 1,
+            "climbAndDescend": 1,
+            "navigation": 1,
+            "missionDelay": 1,
+            "avgSrmScoreOperations": 1.2
+        }
+    },
+    "totalAvgSrmScore": 1.175,
+    "riskMigrationPlan": "",
+    "attachments": [
+        {
+            "uniqueFileName": "1000_pprovaldoc.pdf",
+            "fileName": "approvaldoc.pdf",
+            "comments": ""
+        }
+    ],
+    "complianceReportPDF": "",
+    "submittedBy": "Trey Brown",
+    "createdDate": "2023-02-07T22:01:45Z",
+    "reviewedBy": "B. Gutzwiller",
+    "reviewedDate": "2023-02-07T22:01:45Z",
+    "lastUpdateDate": "2023-02-07T22:01:45Z",
+    "reviewerMailId": ""
+}
