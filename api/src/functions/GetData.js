@@ -36,7 +36,7 @@ app.http('GetData', {
         context.log('Error executing query:', err);
         return {
           status: 500,
-          body: JSON.stringify({ error: 'An error occurred while processing your request.' }),
+          body: JSON.stringify({ error: err }),
           headers: {
             "Content-Type": "text/plain",
             "Access-Control-Allow-Origin": "*"
