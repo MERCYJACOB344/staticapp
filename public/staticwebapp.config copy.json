@@ -1,20 +1,9 @@
 {
   "routes": [
     {
-      "route": "/api/*",
-      "allowedRoles": ["anonymous"]
-    },
-    {
       "route": "/*",
       "serve": "/index.html",
       "statusCode": 200
     }
-  ],
-  "errorPages": [
-    {
-      "statusCode": 404,
-      "rewrite": "/404.html"
-    }
   ]
 }
-
