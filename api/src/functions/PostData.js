@@ -20,13 +20,14 @@ app.http('postData', {
     context.log('Request body:', requestBody);
     context.log('email:', email);
     context.log('password:', password);
-    
+    const isProduction = process.env.APP_ENV === 'PRODUCTION';
     const pool = new Pool({
       host: process.env.DB_HOST,
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       port: 5432,
+      ssl: isProduction ? { rejectUnauthorized: false } : false
     });
 
     let client;
