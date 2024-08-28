@@ -5,17 +5,15 @@ app.http('postData', {
     authLevel: 'anonymous',
     handler: async (request, context) => {
       context.log(`HTTP function processed request for URL: "${request.url}"`);
-      const { email, password } = req.body;
+      const { email, password } = request.body;
       context.log(req.body);
       const pool = new Pool({
         host: 'servercld.postgres.database.azure.com',
-        user: 'postgres@servercld',
+        user: 'postgres',
         password: 'Dbuser123',
         database: 'postgres',
         port: 5432,
-        ssl: {
-            rejectUnauthorized: false
-        }
+      
       });
   
       let client;
