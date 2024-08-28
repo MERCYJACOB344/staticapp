@@ -8,11 +8,18 @@ app.http('postData', {
   handler: async (request, context) => {
     context.log(`HTTP function processed request for URL: "${request.url}"`);
     context.log(process.env.DB_HOST);
-    
-    const { email, password } = request.body;
+    context.log(process.env.DB_USER);
+
+     context.log(process.env.DB_PASSWORD);
+     context.log(process.env.DB_NAME);
+     const bodyText = await request.text();
+     requestBody = JSON.parse(bodyText);
+    const { email, password } = requestBody;
     
     // Log incoming request body
-    context.log('Request body:', request.body);
+    context.log('Request body:', requestBody);
+    context.log('email:', email);
+    context.log('password:', password);
     
     const pool = new Pool({
       host: process.env.DB_HOST,
@@ -28,7 +35,9 @@ app.http('postData', {
       client = await pool.connect();
       
       // Execute the query
-      const result = await client.query('INSERT INTO userInfo (email, password) VALUES ($1, $2) RETURNING *', [email, password]);
+      const result = await client.query('INSERT INTO "userInfo" (email, password) VALUES ($1, $2) RETURNING *', [email, password]);
+     
+
 
       const rows = result.rows; // Array of rows
       context.log('Query result:', rows);
