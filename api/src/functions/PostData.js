@@ -36,7 +36,7 @@ app.http('postData', {
       client = await pool.connect();
       
       // Execute the query
-      const result = await client.query('INSERT INTO "userInfo" (email, password) VALUES ($1, $2) RETURNING *', [email, password]);
+      const result = await client.query('INSERT INTO "userinfo" (email, password) VALUES ($1, $2) RETURNING *', [email, password]);
      
 
 
