@@ -18,7 +18,7 @@ app.http('GetData', {
   
       try {
         client = await pool.connect();
-        const query = 'SELECT * FROM sst_work_order';
+        const query = 'SELECT * FROM userinfo';
         const result = await client.query(query);
   
         const rows = result.rows; // Array of rows

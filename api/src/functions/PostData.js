@@ -7,19 +7,12 @@ app.http('postData', {
   authLevel: 'anonymous',
   handler: async (request, context) => {
     context.log(`HTTP function processed request for URL: "${request.url}"`);
-    context.log(process.env.DB_HOST);
-    context.log(process.env.DB_USER);
 
-     context.log(process.env.DB_PASSWORD);
-     context.log(process.env.DB_NAME);
      const bodyText = await request.text();
      requestBody = JSON.parse(bodyText);
     const { email, password } = requestBody;
     
-    // Log incoming request body
-    context.log('Request body:', requestBody);
-    context.log('email:', email);
-    context.log('password:', password);
+
     const isProduction = process.env.APP_ENV === 'PRODUCTION';
     const pool = new Pool({
       host: process.env.DB_HOST,

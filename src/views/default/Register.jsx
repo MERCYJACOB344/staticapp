@@ -36,26 +36,30 @@ const Register = () => {
   const onSubmit = async (values) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`api/postData`, {
+      const response = await fetch(`/api/postData`, {
         method: "POST",
-        
         body: JSON.stringify({
           email: values.email,
           password: values.password,
         }),
       });
-  
-      // Check for response.ok to handle HTTP errors
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-  
-      const data = await response.json();
-      console.log('dataaaaa', data);
+      
     } catch (error) {
+      setIsLoading(false);
+      setDismissingAlertShow(true);
+      showMessage(e.message, "danger");
       console.error('Fetch error:', error);
     } finally {
       setIsLoading(false);
+      setalertMessage("");
+      showMessage('User added successfully', 'success');
+      values.name = '';
+      values.email = '';
+      values.password = '';
+      values.terms = false;
     }
   };
 
@@ -77,7 +81,7 @@ const Register = () => {
               <p className="h6">Please use the form to register.</p>
               <p className="h6">
                 If you are a member, please{" "}
-                <NavLink to="/loginpage">login</NavLink>.
+                <NavLink to="/loginpage">login</NavLink>
               </p>
             </div>
             {alertMessage && (
