@@ -46,33 +46,16 @@ const Register = () => {
           password: values.password,
         }),
       });
-
-      const data = await response.json();
-      console.log('dataaaaa',data);
-
-      if (response.ok) {
-        let userObj = {
-          email: values.email,
-          name: values.name,
-          session: data.session, // assuming your backend returns a session token
-        };
-        
-        const loginState = {
-          isAuthenticated: true,
-          userEmail: values.email,
-          userInfo: userObj,
-        };
-        
-        storeSession(loginState);
-        dispatch(setCurrentUser(userObj));
-
-        showMessage("User registered successfully!", "success");
-        history.push("/loginpage");
-      } else {
-        throw new Error(data.message || "Failed to register");
+  
+      // Check for response.ok to handle HTTP errors
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
-    } catch (e) {
-      showMessage(e.message, "danger");
+  
+      const data = await response.json();
+      console.log('dataaaaa', data);
+    } catch (error) {
+      console.error('Fetch error:', error);
     } finally {
       setIsLoading(false);
     }
