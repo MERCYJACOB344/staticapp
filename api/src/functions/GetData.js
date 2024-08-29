@@ -5,7 +5,7 @@ app.http('GetData', {
     authLevel: 'anonymous',
     handler: async (request, context) => {
       context.log(`HTTP function processed request for URL: "${request.url}"`);
-  
+      const isProduction = process.env.APP_ENV === 'PRODUCTION';
       const pool = new Pool({
         host: process.env.DB_HOST,
         user: process.env.DB_USER,
