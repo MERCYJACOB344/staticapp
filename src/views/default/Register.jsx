@@ -36,7 +36,7 @@ const Register = () => {
   const onSubmit = async (values) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/postData`, {
+      const response = await fetch(`/api/postUser`, {
         method: "POST",
         body: JSON.stringify({
           email: values.email,

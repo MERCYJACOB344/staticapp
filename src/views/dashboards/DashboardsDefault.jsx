@@ -14,10 +14,14 @@ import DashboardTaskManagement from "../dashboards/component/DashboardTaskManage
 import DashboardAnalysis from "../dashboards/component/DashboardAnalysis";
 import { useAppContext } from "../../lib/contextLib";
 import { checkForValidSession, getParameterByName } from "../../lib/commonLib";
-import { API, Auth } from "aws-amplify";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
-import { useDispatch } from 'react-redux';
-import { setProjects,updateProjectStatus,removeProject,addProject} from "./component/ProjectSlice";
+import { useDispatch } from "react-redux";
+import {
+  setProjects,
+  updateProjectStatus,
+  removeProject,
+  addProject,
+} from "./component/ProjectSlice";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 
 const DashboardsPage = () => {
@@ -55,11 +59,10 @@ const DashboardsPage = () => {
   };
 
   const handleDelete = (deletedProject, status) => {
-    console.log('delete',deletedProject);
+    console.log("delete", deletedProject);
     deleteProjectData(deletedProject);
     setIsDeleted(!isDeleted);
- 
-    
+
     let updateProjectDetails;
     if (status === "Submit Request") {
       updateProjectDetails = submittedProjectDetails.filter(
@@ -71,7 +74,7 @@ const DashboardsPage = () => {
       updateProjectDetails = inProgressProjectDetails.filter(
         (p) => p.wo_id !== deletedProject.wo_id
       );
-      
+
       setInProgressProjectDetails(updateProjectDetails);
       setIsDeleted(isDeleted);
     } else if (status === "QA/QC") {
@@ -87,128 +90,128 @@ const DashboardsPage = () => {
       setCompletedProjectDetails(updateProjectDetails);
       setIsDeleted(isDeleted);
     }
-  
   };
 
   async function deleteProjectData(deletedProject) {
-
-    console.log('deletedproject',deletedProject);
+    console.log("deletedproject", deletedProject);
     try {
-      API.post("fieldsurvey", `/deleteProjectData`, {
-        headers: {
-          Authorization: `${await (await Auth.currentSession())
-            .getAccessToken()
-            .getJwtToken()}`,
-        },
-        body: {
-          deletedProjects: deletedProject,
-        },
-      });
+      const response = await fetch(`/api/deleteWorkOrder`, {
+        method: "POST",
+        body: JSON.stringify({ deletedProjects: deletedProject }),
+      })
       dispatch(removeProject(deletedProject));
     } catch (error) {
       console.log(error);
+      setDismissingAlertShow(true);
+      setalertVariant("danger");
+      getData();
+      setalertMessage("Unable to delete data. Please try again later.");
+
+      console.error(`Unable to delete data. Error: ${error.toString()}`);
     }
   }
 
   async function getData() {
-    API.get("fieldsurvey", `/getDashboardData`, {
-      headers: {
-        Authorization: `${await (await Auth.currentSession())
-          .getAccessToken()
-          .getJwtToken()}`,
-      },
-    })
-      .then((data) => {
-        const projectData = data.result;
-        console.log('getdata',projectData);
-       // create a new object to update redux state
-        const updatedProjectData = projectData.map(project => ({
+    try {
+      const response = await fetch("/api/getWorkOrders");
+      console.log("response", response);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+     
+      if (data.length === 0) {
+        setSubmittedProjectDetails([]);
+        setInProgressProjectDetails([]);
+        setQAProjectDetails([]);
+        setCompletedProjectDetails([]);
+        setIsLoading(false);
+        setDismissingAlertShow(false);
+      } else {
+        let projectData = data;
+        console.log("getdata", projectData);
+
+        const updatedProjectData = projectData.map((project) => ({
           ...project,
         }));
+
         dispatch(setProjects(updatedProjectData));
 
         setUniqueId(data.unique_id);
+
         const submittedProjects = projectData.filter(
           (item) => item.status === "Submit Request"
         );
         setSubmittedProjectDetails(submittedProjects);
+
         const inProgressProjects = projectData.filter(
           (item) => item.status === "InProgress"
         );
         setInProgressProjectDetails(inProgressProjects);
+
         const qaProjects = projectData.filter(
           (item) => item.status === "QA/QC"
         );
         setQAProjectDetails(qaProjects);
+
         const completedProjects = projectData.filter(
           (item) => item.status === "Completed"
         );
         setCompletedProjectDetails(completedProjects);
+
         setIsLoading(false);
         setDismissingAlertShow(false);
-      })
-      .catch((error) => {
-        setIsLoading(false);
-        setDismissingAlertShow(true);
-        setalertVariant("danger");
-        setalertMessage(`Unable to get data.Please try after some time.`);
-       
-        console.log(
-          `Unable to get data. Error: ${error.toString()}, Please try after some time.`,
-          "danger"
-        );
-      });
+      }
+    } catch (error) {
+      setIsLoading(false);
+      setDismissingAlertShow(true);
+      setalertVariant("danger");
+      setalertMessage("Unable to get data. Please try again later.");
+
+      console.error(`Unable to get data. Error: ${error.toString()}`);
+    }
   }
 
   async function addData(addedProjects) {
-   console.log('addedprojects',addedProjects);
-      API.post("fieldsurvey", `/addDashboardData`, {
-        headers: {
-          Authorization: `${await (await Auth.currentSession())
-            .getAccessToken()
-            .getJwtToken()}`,
-        },
-        body: {
-          addedProjects: addedProjects,
-        },
-      })
-      .then(() => {
-      getData();
+    console.log("addedprojects", addedProjects);
+
+    try {
+      const response = await fetch(`/api/postWorkOrders`, {
+        method: "POST",
+        body: JSON.stringify({ addedProjects: addedProjects }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      await getData();
       setDismissingAlertShow(false);
-      })
-      .catch((error) =>{
+    } catch (error) {
       console.log("error in adding project", error);
       setDismissingAlertShow(true);
       setalertVariant("danger");
-      setalertMessage(`Unable to add project.Please try after some time.`);
-      
-    });
+      setalertMessage("Unable to add project. Please try again later.");
+    }
   }
 
   async function updateStatus(updateProject) {
-    console.log('update',updateProject);
+    console.log("update", updateProject);
     try {
-      API.post("fieldsurvey", `/updateStatusData`, {
-        headers: {
-          Authorization: `${await (await Auth.currentSession())
-            .getAccessToken()
-            .getJwtToken()}`,
-        },
-        body: {
-          updateStatus: updateProject,
-        },
-      });
-    
-      let statusWoId = updateProject.wo_id ;
-      let statusUpdated = updateProject.status ;
-      dispatch(updateProjectStatus({statusWoId, status: statusUpdated }));
+      const response = await fetch(`/api/updateStatus`, {
+        method: "POST",
+        body: JSON.stringify({ updateStatus: updateProject }),
+      })
+     
+
+      let statusWoId = updateProject.wo_id;
+      let statusUpdated = updateProject.status;
+      dispatch(updateProjectStatus({ statusWoId, status: statusUpdated }));
       setDismissingAlertShow(false);
     } catch (error) {
       console.log("error in updating status", error);
       setDismissingAlertShow(true);
       setalertVariant("danger");
       setalertMessage(`Unable to update status.Please try after some time.`);
-  
     }
   }
 
@@ -231,13 +234,12 @@ const DashboardsPage = () => {
       // setAddTaskValidation('All fields are required');
       return;
     }
-    console.log('formmmm',formData);
+    console.log("formmmm", formData);
     setAddTaskValidation(false);
     setalertVariant("");
     setalertMessage(``);
     if (currentStatus) {
       formData.status = currentStatus;
-    
     }
 
     if (formData.status === "Submit Request") {
@@ -253,15 +255,14 @@ const DashboardsPage = () => {
     setAddTask(false);
     setAllProjectDetails([...allProjectDetails, formData]);
     let addedProjects = formData;
-    console.log('formdattttt',addedProjects);
+    console.log("formdattttt", addedProjects);
     addData(addedProjects);
     setFormData({
       project_name: "",
       desc_of_work: "",
       start_date: "",
       status: "",
-      end_date: "",
-      wo_id : ""
+      end_date: ""
     });
   };
 
@@ -485,57 +486,56 @@ const DashboardsPage = () => {
           {/* main card starts */}
           {!isloading ? (
             <div>
-          <Row className="g-2 mb-5">
-            {dismissingAlertShow && (
-              <Alert
-                variant={alertVariant}
-                onClose={() => setDismissingAlertShow(false)}
-                dismissible
-                className="text-center"
-              >
-                <strong>{alertMessage}</strong>
-              </Alert>
-            )}
+              <Row className="g-2 mb-5">
+                {dismissingAlertShow && (
+                  <Alert
+                    variant={alertVariant}
+                    onClose={() => setDismissingAlertShow(false)}
+                    dismissible
+                    className="text-center"
+                  >
+                    <strong>{alertMessage}</strong>
+                  </Alert>
+                )}
 
-
-              <DragDropContext onDragEnd={handleDragEnd}>
-                {/* main card1  starts  */}
-                <Col sm="6" xxl="3">
-                  <Card style={{ background: "#dadada", height: "500px" }}>
-                    <Card.Body>
-                      <div
-                        className="d-flex justify-content-between align-items-center mb-1"
-                        style={{ fontSize: "20px" }}
-                      >
-                        <h4 className="heading mb-0" ref={headingRef}>
-                          Submit Request
-                        </h4>
-                        <Button
-                          variant="outline-light"
-                          size="sm"
-                          className="btn-icon btn-icon-only"
+                <DragDropContext onDragEnd={handleDragEnd}>
+                  {/* main card1  starts  */}
+                  <Col sm="6" xxl="3">
+                    <Card style={{ background: "#dadada", height: "500px" }}>
+                      <Card.Body>
+                        <div
+                          className="d-flex justify-content-between align-items-center mb-1"
+                          style={{ fontSize: "20px" }}
                         >
-                          <CsLineIcons icon="more-horizontal" />
-                        </Button>
-                      </div>
-                      <Droppable droppableId="submittedProjects">
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
+                          <h4 className="heading mb-0" ref={headingRef}>
+                            Submit Request
+                          </h4>
+                          <Button
+                            variant="outline-light"
+                            size="sm"
+                            className="btn-icon btn-icon-only"
                           >
-                            <DashboardTaskManagement
-                              projectDetails={submittedProjectDetails}
-                              deleteProject={(project) =>
-                                handleDelete(project, "Submit Request")
-                              }
-                            />
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
+                            <CsLineIcons icon="more-horizontal" />
+                          </Button>
+                        </div>
+                        <Droppable droppableId="submittedProjects">
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                            >
+                              <DashboardTaskManagement
+                                projectDetails={submittedProjectDetails}
+                                deleteProject={(project) =>
+                                  handleDelete(project, "Submit Request")
+                                }
+                              />
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
 
-                      {/* <div style={{ height: "500px", overflow: "hidden" }}>
+                        {/* <div style={{ height: "500px", overflow: "hidden" }}>
                     <DashboardTaskManagement
                       projectDetails={submittedProjectDetails}
                       deleteProject={(project) =>
@@ -543,58 +543,58 @@ const DashboardsPage = () => {
                       }
                     />
                   </div> */}
-                      <Col
-                        sm="12"
-                        className="mb-3 d-flex justify-content-center align-items-center"
-                      >
-                        <Button
-                          variant="light"
-                          className="mb-1"
-                          onClick={() => handleAddTaskClick("Submit Request")}
+                        <Col
+                          sm="12"
+                          className="mb-3 d-flex justify-content-center align-items-center"
                         >
-                          <CsLineIcons icon="plus" /> <span>Add Task</span>
-                        </Button>
-                      </Col>
-                      {renderModal()}
-                    </Card.Body>
-                  </Card>
-                </Col>
-
-                <Col sm="6" xxl="3">
-                  <Card style={{ background: "#dadada", height: "500px" }}>
-                    <Card.Body>
-                      <div
-                        className="d-flex justify-content-between align-items-center mb-1"
-                        style={{ fontSize: "20px" }}
-                      >
-                        <h4 className="heading mb-0" ref={headingRef}>
-                          InProgress
-                        </h4>
-                        <Button
-                          variant="outline-light"
-                          size="sm"
-                          className="btn-icon btn-icon-only"
-                        >
-                          <CsLineIcons icon="more-horizontal" />
-                        </Button>
-                      </div>
-                      <Droppable droppableId="inProgressProjects">
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
+                          <Button
+                            variant="light"
+                            className="mb-1"
+                            onClick={() => handleAddTaskClick("Submit Request")}
                           >
-                            <DashboardTaskManagement
-                              projectDetails={inProgressProjectDetails}
-                              deleteProject={(project) =>
-                                handleDelete(project, "InProgress")
-                              }
-                            />
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
-                      {/* <div style={{ height: "500px", overflow: "hidden" }}>
+                            <CsLineIcons icon="plus" /> <span>Add Task</span>
+                          </Button>
+                        </Col>
+                        {renderModal()}
+                      </Card.Body>
+                    </Card>
+                  </Col>
+
+                  <Col sm="6" xxl="3">
+                    <Card style={{ background: "#dadada", height: "500px" }}>
+                      <Card.Body>
+                        <div
+                          className="d-flex justify-content-between align-items-center mb-1"
+                          style={{ fontSize: "20px" }}
+                        >
+                          <h4 className="heading mb-0" ref={headingRef}>
+                            InProgress
+                          </h4>
+                          <Button
+                            variant="outline-light"
+                            size="sm"
+                            className="btn-icon btn-icon-only"
+                          >
+                            <CsLineIcons icon="more-horizontal" />
+                          </Button>
+                        </div>
+                        <Droppable droppableId="inProgressProjects">
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                            >
+                              <DashboardTaskManagement
+                                projectDetails={inProgressProjectDetails}
+                                deleteProject={(project) =>
+                                  handleDelete(project, "InProgress")
+                                }
+                              />
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                        {/* <div style={{ height: "500px", overflow: "hidden" }}>
                     <DashboardTaskManagement
                       projectDetails={inProgressProjectDetails}
                       deleteProject={(project) =>
@@ -602,58 +602,58 @@ const DashboardsPage = () => {
                       }
                     />
                   </div> */}
-                      <Col
-                        sm="12"
-                        className="mb-3 d-flex justify-content-center align-items-center"
-                      >
-                        <Button
-                          variant="light"
-                          className="mb-1"
-                          onClick={() => handleAddTaskClick("InProgress")}
+                        <Col
+                          sm="12"
+                          className="mb-3 d-flex justify-content-center align-items-center"
                         >
-                          <CsLineIcons icon="plus" /> <span>Add Task</span>
-                        </Button>
-                      </Col>
-                      {renderModal()}
-                    </Card.Body>
-                  </Card>
-                </Col>
-
-                <Col sm="6" xxl="3">
-                  <Card style={{ background: "#dadada", height: "500px" }}>
-                    <Card.Body>
-                      <div
-                        className="d-flex justify-content-between align-items-center mb-1"
-                        style={{ fontSize: "20px" }}
-                      >
-                        <h4 className="heading mb-0" ref={headingRef}>
-                          QA/QC
-                        </h4>
-                        <Button
-                          variant="outline-light"
-                          size="sm"
-                          className="btn-icon btn-icon-only"
-                        >
-                          <CsLineIcons icon="more-horizontal" />
-                        </Button>
-                      </div>
-                      <Droppable droppableId="qaProjects">
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
+                          <Button
+                            variant="light"
+                            className="mb-1"
+                            onClick={() => handleAddTaskClick("InProgress")}
                           >
-                            <DashboardTaskManagement
-                              projectDetails={qaProjectDetails}
-                              deleteProject={(project) =>
-                                handleDelete(project, "QA/QC")
-                              }
-                            />
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
-                      {/* <div style={{ height: "500px", overflow: "hidden" }}>
+                            <CsLineIcons icon="plus" /> <span>Add Task</span>
+                          </Button>
+                        </Col>
+                        {renderModal()}
+                      </Card.Body>
+                    </Card>
+                  </Col>
+
+                  <Col sm="6" xxl="3">
+                    <Card style={{ background: "#dadada", height: "500px" }}>
+                      <Card.Body>
+                        <div
+                          className="d-flex justify-content-between align-items-center mb-1"
+                          style={{ fontSize: "20px" }}
+                        >
+                          <h4 className="heading mb-0" ref={headingRef}>
+                            QA/QC
+                          </h4>
+                          <Button
+                            variant="outline-light"
+                            size="sm"
+                            className="btn-icon btn-icon-only"
+                          >
+                            <CsLineIcons icon="more-horizontal" />
+                          </Button>
+                        </div>
+                        <Droppable droppableId="qaProjects">
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                            >
+                              <DashboardTaskManagement
+                                projectDetails={qaProjectDetails}
+                                deleteProject={(project) =>
+                                  handleDelete(project, "QA/QC")
+                                }
+                              />
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                        {/* <div style={{ height: "500px", overflow: "hidden" }}>
                     <DashboardTaskManagement
                       projectDetails={qaProjectDetails}
                       deleteProject={(project) =>
@@ -661,58 +661,58 @@ const DashboardsPage = () => {
                       }
                     />
                   </div> */}
-                      <Col
-                        sm="12"
-                        className="mb-3 d-flex justify-content-center align-items-center"
-                      >
-                        <Button
-                          variant="light"
-                          className="mb-1"
-                          onClick={() => handleAddTaskClick("QA/QC")}
+                        <Col
+                          sm="12"
+                          className="mb-3 d-flex justify-content-center align-items-center"
                         >
-                          <CsLineIcons icon="plus" /> <span>Add Task</span>
-                        </Button>
-                      </Col>
-                      {renderModal()}
-                    </Card.Body>
-                  </Card>
-                </Col>
-
-                <Col sm="6" xxl="3">
-                  <Card style={{ background: "#dadada", height: "500px" }}>
-                    <Card.Body>
-                      <div
-                        className="d-flex justify-content-between align-items-center mb-1"
-                        style={{ fontSize: "20px" }}
-                      >
-                        <h4 className="heading mb-0" ref={headingRef}>
-                          Completed
-                        </h4>
-                        <Button
-                          variant="outline-light"
-                          size="sm"
-                          className="btn-icon btn-icon-only"
-                        >
-                          <CsLineIcons icon="more-horizontal" />
-                        </Button>
-                      </div>
-                      <Droppable droppableId="completedProjects">
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
+                          <Button
+                            variant="light"
+                            className="mb-1"
+                            onClick={() => handleAddTaskClick("QA/QC")}
                           >
-                            <DashboardTaskManagement
-                              projectDetails={completedProjectDetails}
-                              deleteProject={(project) =>
-                                handleDelete(project, "Completed")
-                              }
-                            />
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
-                      {/* <div style={{ height: "500px", overflow: "hidden" }}>
+                            <CsLineIcons icon="plus" /> <span>Add Task</span>
+                          </Button>
+                        </Col>
+                        {renderModal()}
+                      </Card.Body>
+                    </Card>
+                  </Col>
+
+                  <Col sm="6" xxl="3">
+                    <Card style={{ background: "#dadada", height: "500px" }}>
+                      <Card.Body>
+                        <div
+                          className="d-flex justify-content-between align-items-center mb-1"
+                          style={{ fontSize: "20px" }}
+                        >
+                          <h4 className="heading mb-0" ref={headingRef}>
+                            Completed
+                          </h4>
+                          <Button
+                            variant="outline-light"
+                            size="sm"
+                            className="btn-icon btn-icon-only"
+                          >
+                            <CsLineIcons icon="more-horizontal" />
+                          </Button>
+                        </div>
+                        <Droppable droppableId="completedProjects">
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                            >
+                              <DashboardTaskManagement
+                                projectDetails={completedProjectDetails}
+                                deleteProject={(project) =>
+                                  handleDelete(project, "Completed")
+                                }
+                              />
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                        {/* <div style={{ height: "500px", overflow: "hidden" }}>
                     <DashboardTaskManagement
                       projectDetails={completedProjectDetails}
                       deleteProject={(project) =>
@@ -720,29 +720,28 @@ const DashboardsPage = () => {
                       }
                     />
                   </div> */}
-                    </Card.Body>
-                  </Card>
-                </Col>
-              </DragDropContext>
-            
-          </Row>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                </DragDropContext>
+              </Row>
 
-          <Col xs="12" xl="6">
-            <section className="scroll-section" id="horizontalBarChart">
-              <h1> Overview</h1>
-              <Card body className="mb-5">
-                <div className="sh-35">
-                  <DashboardAnalysis
-                    submittedRequests={submittedProjectDetails}
-                    qaRequests={qaProjectDetails}
-                    completedRequests={completedProjectDetails}
-                    inProgressRequests={inProgressProjectDetails}
-                  />
-                </div>
-              </Card>
-            </section>
-          </Col>
-          </div>
+              <Col xs="12" xl="6">
+                <section className="scroll-section" id="horizontalBarChart">
+                  <h1> Overview</h1>
+                  <Card body className="mb-5">
+                    <div className="sh-35">
+                      <DashboardAnalysis
+                        submittedRequests={submittedProjectDetails}
+                        qaRequests={qaProjectDetails}
+                        completedRequests={completedProjectDetails}
+                        inProgressRequests={inProgressProjectDetails}
+                      />
+                    </div>
+                  </Card>
+                </section>
+              </Col>
+            </div>
           ) : (
             <div>
               <div className="text-center" style={{ marginTop: `250px` }}>

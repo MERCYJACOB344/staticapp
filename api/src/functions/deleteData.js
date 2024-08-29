@@ -2,7 +2,6 @@ const { app } = require('@azure/functions');
 const { Pool } = require('pg');
 require('dotenv').config();
 
-
 function createPool() {
   const isProduction = process.env.APP_ENV === 'PRODUCTION';
   return new Pool({
@@ -32,15 +31,14 @@ async function executeQuery(query, params = []) {
   }
 }
 
-
-async function handleGetRequest(query, context) {
+async function handleDeleteRequest(query, params, context) {
   try {
-    const rows = await executeQuery(query);
-    context.log('Query result:', rows);
+    await executeQuery(query, params);
+    context.log('Delete operation successful for params:', params);
 
     return {
       status: 200,
-      body: JSON.stringify(rows),
+      body: JSON.stringify({ deletedId: params[0] }), // Respond with the deleted ID or any relevant information
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*" // Allow CORS if needed
@@ -60,26 +58,31 @@ async function handleGetRequest(query, context) {
   }
 }
 
-
-
-
-app.http('getUsers',{
-  methods: ['GET'],
+app.http('deleteWorkOrder', {
+  methods: ['POST'],
   authLevel: 'anonymous',
   handler: async (request, context) => {
-    const query = 'SELECT * FROM userinfo';
-    return await handleGetRequest(query, context);
+    try {
+        const requestBody = await request.json(); 
+      context.log('Request body:', requestBody);
+
+      const { wo_id } = requestBody.deletedProjects;
+
+      const query = 'DELETE FROM workorders WHERE wo_id = $1';
+      const params = [wo_id];
+
+      return await handleDeleteRequest(query, params, context);
+    } catch (error) {
+      context.log('Error processing request:', error);
+
+      return {
+        status: 500,
+        body: JSON.stringify({ message: 'Internal Server Error' }),
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        }
+      };
+    }
   }
 });
-
-
-app.http('getWorkOrders', {
-  methods: ['GET'],
-  authLevel: 'anonymous',
-  handler: async (request, context) => {
-    const query = 'SELECT wo_id, project_name,status,desc_of_work,start_date,end_date,lat_long FROM workorders';
-    return await handleGetRequest(query, context);
-  }
-});
-
-

@@ -49,7 +49,7 @@ const Login = () => {
     try {
       setIsLoading(true);
       setIsEnableLogin(true);
-      const response = await fetch("/api/GetData");
+      const response = await fetch("/api/getUsers");
       if (!response.ok) {
         throw new Error(`Network response was not ok: ${response.statusText}`);
       }

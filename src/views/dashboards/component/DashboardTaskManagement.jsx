@@ -9,7 +9,7 @@ import { useHistory } from "react-router-dom";
 const DashboardTaskManagement = ({ projectDetails, deleteProject }) => {
  
   const history = useHistory();
-
+ console.log('inside');
   const formatDate = (isoString) => {
     const date = new Date(isoString);
     const year = date.getFullYear();
