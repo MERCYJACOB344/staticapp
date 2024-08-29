@@ -7,11 +7,12 @@ app.http('GetData', {
       context.log(`HTTP function processed request for URL: "${request.url}"`);
   
       const pool = new Pool({
-          user: 'dbuser',
-          host: 'nestit-337',
-          database: 'test',
-          password: 'dbuser',
-          port: 5432,
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        port: 5432,
+        ssl: isProduction ? { rejectUnauthorized: false } : false
       });
   
       let client;
