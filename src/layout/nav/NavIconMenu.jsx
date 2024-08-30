@@ -76,12 +76,12 @@ const NavIconMenu = () => {
             <span style={{cursor:'default'}}>{userName}({loginUserRole})</span>    
           </a>                 
         </li> */}
-        <li className="list-inline-item">
+        {/* <li className="list-inline-item">
         <a href="" onClick={onFeedbackIconClick}>
          
             <CsLineIcons icon="calendar" size="25" />
          </a>
-        </li>
+        </li> */}
         {/* <li className="list-inline-item">
           <a href="/settings">
             <CsLineIcons icon="gear" size="18" />
