@@ -13,12 +13,15 @@ const dashboards = {
   default: lazy(() => import('./views/dashboards/DashboardsDefault')),
 };
 
-
-
-const fieldSide = {
-  default: lazy(() => import('./views/fieldSide/fieldSide')),
+const initiation = {
+  index: lazy(() => import('./views/initiation/initiationWork')),
+  grid: lazy(() => import('./views/initiation/gridList'))
 
 };
+
+
+
+
 
 const pages = {
   index: lazy(() => import('./views/pages/Pages')),
@@ -59,13 +62,18 @@ const routesAndMenuItems = {
       label: 'menu.dashboard',
     },
     
-
-
     {
-      path: `${appRoot}/fieldSide`,
-      component: fieldSide.default,
-      label: 'menu.fieldSide',
+      path: `${appRoot}/initiation`,
+      label: 'menu.initiation',
+      component: initiation.index,
+      subs: [
+        { path: '/CreateInitiation', label: 'menu.createInitiation', component: initiation.index },
+        { path: '/GridInitiation', label: 'menu.gridInitiation', component: initiation.grid },
+        // { path: '/CopyFCR', component: fcr.createfcr },
+      ],
     },
+
+   
    
 
 

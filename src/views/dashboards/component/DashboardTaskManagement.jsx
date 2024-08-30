@@ -47,7 +47,7 @@ const DashboardTaskManagement = ({ projectDetails, deleteProject }) => {
           projectDetails.map((project, index) => (
             <Draggable
               key={project.wo_id}
-              draggableId={project.wo_id.toString()}
+              draggableId={project.wo_id?.toString()}
               index={index}
             >
               {(provided) => (

@@ -82,4 +82,118 @@ app.http('getWorkOrders', {
   }
 });
 
+app.http('getAllWorkOrders', {
+  methods: ['GET'],
+  authLevel: 'anonymous',
+  handler: async (request, context) => {
+    const query = 'SELECT * FROM workorders';
+    return await handleGetRequest(query, context);
+  }
+});
+app.http('getWorkOrderByWoId', {
+  methods: ['GET'],
+  authLevel: 'anonymous',
+  handler: async (request, context) => {
+
+    const wo_id = request.headers['wo_id']; 
+
+
+
+
+  
+    if (!wo_id) {
+      context.res = {
+        status: 400,
+        body: 'wo_id query parameter is required.',
+      };
+      return;
+    }
+
+    // SQL query to fetch data
+    const query = 'SELECT * FROM workorders WHERE wo_id = $1';
+
+    try {
+      // Call your function to execute the query
+      const result = await handleGetRequest(query, [wo_id]);
+
+      // Return the result
+      context.res = {
+        status: 200,
+        body: result,
+      };
+    } catch (error) {
+      console.error('Error:', error);
+      context.res = {
+        status: 500,
+        body: 'An error occurred while fetching the work order.',
+      };
+    }
+  }
+});
+
+// app.http('getEditData', {
+//   methods: ['GET'],
+//   authLevel: 'anonymous',
+//   handler: async (request, context) => {
+    
+//     const headersMap = request.headers[Symbol.for('headers map')];
+
+//     // Fetch the 'wo_id' value from the headers map
+//     const woIdHeader = headersMap.get('wo_id');
+//     const wo_id = woIdHeader ? woIdHeader.value : undefined;
+ 
+// context.log('woo-id',wo_id);
+//     const query = "SELECT * FROM workorders WHERE wo_id = $1";
+//     return await handleGetRequest(query, [wo_id]);
+//   }
+// });
+
+
+app.http('getWorkType', {
+  methods: ['GET'],
+  authLevel: 'anonymous',
+  handler: async (request, context) => {
+    const query = 'SELECT work_id, work_type FROM type_of_work';
+    return await handleGetRequest(query, context);
+  }
+});
+
+
+app.http('getStatuses', {
+  methods: ['GET'],
+  authLevel: 'anonymous',
+  handler: async (request, context) => {
+    const query = 'SELECT status_id, status_name FROM work_order_status';
+    return await handleGetRequest(query, context);
+  }
+});
+
+
+app.http('getAuthorizers', {
+  methods: ['GET'],
+  authLevel: 'anonymous',
+  handler: async (request, context) => {
+    const query = "SELECT user_id, user_name FROM design_engineers WHERE user_role = 'Manager'";
+    return await handleGetRequest(query, context);
+  }
+});
+
+
+app.http('getRequesters', {
+  methods: ['GET'],
+  authLevel: 'anonymous',
+  handler: async (request, context) => {
+    const query = 'SELECT client_id, client_name FROM requesters';
+    return await handleGetRequest(query, context);
+  }
+});
+
+app.http('getDesignEngineers', {
+  methods: ['GET'],
+  authLevel: 'anonymous',
+  handler: async (request, context) => {
+    const query = "SELECT user_id, user_name FROM design_engineers WHERE user_role LIKE '%Engineer'";
+    return await handleGetRequest(query, context);
+  }
+});
 

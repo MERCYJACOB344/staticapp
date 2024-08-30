@@ -23,14 +23,14 @@ const Register = () => {
     name: Yup.string().required("Name is required"),
     email: Yup.string().email().required("Email is required"),
     password: Yup.string().required("Password is required"),
-    terms: Yup.bool().required().oneOf([true], "Terms must be accepted"),
+   
   });
 
   const initialValues = {
     name: "",
     email: "",
     password: "",
-    terms: false,
+
   };
 
   const onSubmit = async (values) => {
@@ -59,7 +59,7 @@ const Register = () => {
       values.name = '';
       values.email = '';
       values.password = '';
-      values.terms = false;
+    
     }
   };
 
@@ -144,28 +144,7 @@ const Register = () => {
                   </div>
                 )}
               </div>
-              <div className="mb-3 position-relative form-group">
-                <div className="form-check">
-                  <input
-                    type="checkbox"
-                    className="form-check-input"
-                    name="terms"
-                    onChange={handleChange}
-                    value={values.terms}
-                  />
-                  <label className="form-check-label">
-                    I have read and accept the{" "}
-                    <NavLink to="/" target="_blank">
-                      terms and conditions.
-                    </NavLink>
-                  </label>
-                  {errors.terms && touched.terms && (
-                    <div className="d-block invalid-tooltip">
-                      {errors.terms}
-                    </div>
-                  )}
-                </div>
-              </div>
+              
               <Button
                 size="lg"
                 type="submit"
