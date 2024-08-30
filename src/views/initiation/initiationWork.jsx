@@ -198,8 +198,13 @@ const WorkRequestForm = () => {
         );
        
       }
+
+      console.log('updated work order',updatedWorkOrder);
       const response = await fetch(`/api/updateWorkRequest`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify(updatedWorkOrder),
       });
       if (!response.ok) {
