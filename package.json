@@ -4,6 +4,7 @@
   "private": true,
   "proxy": "http://localhost:7071",
   "dependencies": {
+    "@azure/storage-blob": "^12.24.0",
     "@fullcalendar/bootstrap": "^5.9.0",
     "@fullcalendar/daygrid": "^5.9.0",
     "@fullcalendar/interaction": "^5.9.0",
@@ -93,7 +94,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint:fix": "eslint ./src --fix",
-    "lint":  "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0"
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0"
   },
   "browserslist": {
     "production": [

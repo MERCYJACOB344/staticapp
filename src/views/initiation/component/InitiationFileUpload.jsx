@@ -3,20 +3,49 @@ import CsLineIcons from "../../../cs-line-icons/CsLineIcons";
 import { Button, Form, Row, Col } from "react-bootstrap";
 import { API, Auth } from "aws-amplify";
 import { v4 as uuidv4 } from "uuid";
+import { BlobServiceClient } from "@azure/storage-blob";
 
 const InitiationFileUpload = ({
   documentDeleteHandler = () => {},
   uploadAttachment,
   editDocumentList,
+  clearFileName,
 }) => {
-
-  console.log('editdocumentlist',editDocumentList);
   const [addDocumentCount, setAddDocumentCount] = useState([
     { id: uuidv4(), adddocument: null },
   ]);
   const [editDocuments, seteditDocuments] = useState([]);
   const [deleteFlag, setdeleteFlag] = useState(false);
   const fileInputRefs = useRef({});
+  const sasToken = process.env.REACT_APP_SAS_TOKEN;
+  const storageAccountName = process.env.REACT_APP_STORAGE_ACCOUNT_NAME;
+  const containerName = process.env.REACT_APP_CONTAINER_NAME;
+  const handleDownload = async (item) => {
+    const blobUrl = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${item.fileKey}?${sasToken}`;
+    try {
+      const response = await fetch(blobUrl);
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const blob = await response.blob();
+
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = item.fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Optionally, revoke the object URL after a delay
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch (error) {
+      console.error("Error downloading the file:", error);
+    }
+  };
 
   const handleProjectDocumentChange = (e, id) => {
     const file = e.target.files[0];
@@ -39,8 +68,22 @@ const InitiationFileUpload = ({
 
     delete fileInputRefs.current[id];
   };
-  const handleDelete = (item) => {
+
+  const handleDelete = async (item) => {
     setdeleteFlag(true);
+    const blobUrl = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${item.fileKey}?${sasToken}`;
+    const blobServiceClient = new BlobServiceClient(blobUrl);
+
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+
+    const blockBlobClient = containerClient.getBlockBlobClient(item.fileKey);
+
+    try {
+      await blockBlobClient.delete();
+      console.log(`Blob ${blobName} deleted successfully.`);
+    } catch (error) {
+      console.error("Error deleting blob:", error);
+    }
     const indexvalue = editDocumentList.findIndex((element, index) => {
       if (element.fileKey.includes(item.fileKey)) {
         return true;
@@ -63,10 +106,20 @@ const InitiationFileUpload = ({
     seteditDocuments(editdoc);
   };
 
+  useEffect(() => {
+    if (clearFileName) {
+      Object.keys(fileInputRefs.current).forEach((id) => {
+        if (fileInputRefs.current[id]) {
+          fileInputRefs.current[id].value = "";
+        }
+      });
+    }
+  }, [clearFileName]);
+
   return (
     <>
       <div className="row">
-        <div className="col-md-8">
+        <div className="col-md-4">
           <div className="card-body">
             <Form>
               <h5 className="label">UPLOAD ATTACHMENTS</h5>
@@ -128,7 +181,7 @@ const InitiationFileUpload = ({
         <div className="card-body">
           <h5 className="label">DOCUMENTS UPLOADED</h5>
           <br />
-          {editDocumentList === null || editDocumentList.length === 0  ? (
+          {editDocumentList === null ? (
             <div>
               <p>No files uploaded </p>
             </div>
@@ -154,9 +207,7 @@ const InitiationFileUpload = ({
                               <a
                                 href="#href-link"
                                 className="body-link"
-                                onClick={(e) =>
-                                  handleDownload(item, locationDetails.email)
-                                }
+                                onClick={(e) => handleDownload(item)}
                               >
                                 {item.fileName}
                               </a>
@@ -191,21 +242,20 @@ const InitiationFileUpload = ({
                               <a
                                 href="#href-link"
                                 className="body-link"
-                                onClick={(e) =>
-                                  handleDownload(item, locationDetails.email)
-                                }
+                                onClick={(e) => handleDownload(item)}
                               >
                                 {item.fileName}
                               </a>
                             </div>
-                            <div className="col-sm-2 d-grid gap-2 d-flex align-items-center "></div>
-                            <div className="col-sm-2  d-flex">
-                              <Button
-                                variant="outline-primary"
-                                onClick={(e) => handleDelete(item)}
-                              >
-                                Delete
-                              </Button>
+                            <div className="col-sm-2 d-grid gap-2 d-flex align-items-center ">
+                              <div className="col-sm-2  d-flex">
+                                <Button
+                                  variant="outline-primary"
+                                  onClick={(e) => handleDelete(item)}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </div>

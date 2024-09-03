@@ -13,12 +13,13 @@ import {
 import BreadcrumbList from "../../components/breadcrumb-list/BreadcrumbList";
 import { checkForValidSession, getParameterByName } from "../../lib/commonLib";
 import { API, Auth } from "aws-amplify";
-import { useLocation } from "react-router-dom";
+import { useLocation, useHistory } from "react-router-dom";
 import { s3Upload, s3FileCopy } from "../../lib/awsLib";
 import InitiationFileUpload from "./component/InitiationFileUpload";
 import { useSelector } from "react-redux";
 import CsLineIcons from "../../cs-line-icons/CsLineIcons";
 import { useDispatch } from "react-redux";
+
 import {
   setProjects,
   updateProjectStatus,
@@ -26,6 +27,7 @@ import {
   addProject,
   updateProject,
 } from "../dashboards/component/ProjectSlice";
+import { BlobServiceClient } from "@azure/storage-blob";
 
 const WorkRequestForm = () => {
   const location = useLocation();
@@ -46,8 +48,16 @@ const WorkRequestForm = () => {
   const [dismissingAlertShow, setDismissingAlertShow] = useState(false);
   const [alertVariant, setalertVariant] = useState("");
   const [alertMessage, setalertMessage] = useState("");
+  const [clearFileName, setClearFileName] = useState(false);
   const { currentUser, isLogin } = useSelector((state) => state.auth);
   const uploadedEmail = currentUser.email;
+  const history = useHistory();
+
+  const sasToken =process.env.REACT_APP_SAS_TOKEN;
+  const storageAccountName =process.env.REACT_APP_STORAGE_ACCOUNT_NAME ;
+  const containerName = process.env.REACT_APP_CONTAINER_NAME;
+
+
 
   const showMessage = (strMsg, msgType = "info") => {
     setalertVariant(msgType);
@@ -77,8 +87,7 @@ const WorkRequestForm = () => {
     workTickets: "",
     specialInstructions: "",
     designEngineerId: "",
-    fileUpload: null,
-    uploadAttachment: null,
+    uploadAttachment: "",
   });
 
   if (!isAuthenticated) {
@@ -105,38 +114,48 @@ const WorkRequestForm = () => {
     setIsLoading(true);
     const wo_id = editData.wo_id;
 
-
     try {
-      
       const response = await fetch("/api/getAllWorkOrders");
-
       const data = await response.json();
 
       const filteredData = data.filter((order) => order.wo_id === wo_id);
+    
       if (!response.ok) {
         throw new Error(`Network response was not ok: ${response.statusText}`);
       }
 
-     
       let edtdta = filteredData[0];
-      setFormData({
-        projectName: edtdta.project_name,
-        requesterId: edtdta.requested_by,
-        contactNumber: edtdta.contact_number,
-        workTypeId: edtdta.type_of_work,
-        workDescription: edtdta.desc_of_work,
-        authorizerId: edtdta.work_auth_by,
-        startDate: formatDate(edtdta.start_date),
-        endDate: formatDate(edtdta.end_date),
-        status: edtdta.status,
-        latitudeLongitude: edtdta.lat_long,
-        workTickets: edtdta.work_tickets_req,
-        specialInstructions: edtdta.special_instr,
-        designEngineerId: edtdta.design_engineer,
-        fileUpload: null,
-        wo_id: edtdta.wo_id,
-        uploadAttachment: edtdta.uploadattachments,
-      });
+     
+      formData.uploadAttachment = edtdta.uploadattachments;
+      formData.projectName = edtdta.project_name;
+      formData.requesterId = edtdta.requested_by;
+      formData.contactNumber = edtdta.contact_number;
+      formData.workTypeId = edtdta.type_of_work;
+      formData.workDescription = edtdta.desc_of_work;
+      formData.authorizerId = edtdta.work_auth_by;
+      formData.startDate = edtdta.start_date
+        ? formatDate(edtdta.start_date)
+        : null;
+      formData.endDate = edtdta.end_date ? formatDate(edtdta.end_date) : null;
+      formData.status = edtdta.status;
+      formData.latitudeLongitude = edtdta.lat_long;
+      formData.workTickets = edtdta.work_tickets_req;
+      formData.specialInstructions = edtdta.special_instr;
+      formData.wo_id = edtdta.wo_id;
+
+      formData.designEngineerId = edtdta.design_engineer;
+
+      let fileAttachments = [];
+      if (
+        formData.uploadAttachment.length !== 0 &&
+        formData.uploadAttachment !== null
+      ) {
+      
+        fileAttachments = JSON.parse(formData.uploadAttachment);
+        seteditDocumentList(fileAttachments);
+        tmpAttachmentDocs = fileAttachments;
+      }
+
 
       const updateTitle = (newTitle) => {
         setTitle(newTitle);
@@ -161,50 +180,62 @@ const WorkRequestForm = () => {
     }
     //window.location.href = "../dashboards/DashboardsDefault";
   };
- 
+
   const handleEditSave = async () => {
-    setSaveBtnStatus(true);
     try {
-      // if (addDocument) {
-      //   let singleDocument = null;
-      //   /* eslint-disable no-await-in-loop */
-      //   for (let i = 0; i < addDocument.length; i += 1) {
-      //     singleDocument = addDocument[i];
-      //     if (singleDocument.adddocument !== null) {
-      //       const docUploaded = await doFileUpload(
-      //         singleDocument,
-      //         uploadedEmail
-      //       );
-      //       const newDocument = {
-      //         fileKey: docUploaded.fileKey,
-      //         fileName: singleDocument.adddocument.name,
-      //       };
-
-      //       tmpAttachmentDocs.push(newDocument);
-      //     }
-      //   }
-
-      //   formData.uploadAttachment = JSON.stringify(tmpAttachmentDocs);
-      // }
-
-      let updatedWorkOrder = formData;
-   
       if (!validateContactNumber(formData.contactNumber)) {
-        throw new Error("Invalid contact number. Please enter a valid contact number.");
+        throw new Error(
+          "Invalid contact number. Please enter a valid contact number."
+        );
       }
-      if (!formData.workTickets ) {
+      if (!formData.workTickets) {
         throw new Error(
           "No work tickets provided. Please enter at least one work ticket."
         );
-       
+      }
+      if (!formData.startDate) {
+        throw new Error("Please provide starttdate");
+      }
+      if (!formData.endDate) {
+        throw new Error("Please provide end date");
+      }
+      setSaveBtnStatus(true);
+
+      if (addDocument) {
+        let singleDocument = null;
+
+        /* eslint-disable no-await-in-loop */
+        for (let i = 0; i < addDocument.length; i += 1) {
+          if (addDocument[i].adddocument !== null) {
+            singleDocument = addDocument[i].adddocument;
+
+            if (singleDocument.adddocument !== null) {
+              const blobServiceClient = new BlobServiceClient(
+                `https://${storageAccountName}.blob.core.windows.net?${sasToken}`
+              );
+              const containerClient =
+                blobServiceClient.getContainerClient(containerName);
+              const blobName = new Date().getTime() + "-" + singleDocument.name;
+              const blockBlobClient =
+                containerClient.getBlockBlobClient(blobName);
+              await blockBlobClient.uploadData(singleDocument);
+              const newDocument = {
+                fileKey: blobName,
+                fileName: singleDocument.name,
+              };
+
+              tmpAttachmentDocs.push(newDocument);
+            }
+          }
+          formData.uploadAttachment = JSON.stringify(tmpAttachmentDocs);
+        }
       }
 
-      console.log('updated work order',updatedWorkOrder);
+      let updatedWorkOrder = formData;
+
       const response = await fetch(`/api/updateWorkRequest`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+
         body: JSON.stringify(updatedWorkOrder),
       });
       if (!response.ok) {
@@ -218,6 +249,7 @@ const WorkRequestForm = () => {
       setShowSuccessModal(true);
       setSaveBtnStatus(false);
       handleClear();
+      history.push("/dashboards");
     } catch (error) {
       setSaveBtnStatus(false);
       setDismissingAlertShow(true);
@@ -227,49 +259,56 @@ const WorkRequestForm = () => {
     }
   };
   const handleCreateSave = async () => {
-    setIsEdit(false);
-    setSaveBtnStatus(true);
-    if (!validateContactNumber(formData.contactNumber)) {
-      throw new Error("Invalid contact number. Please enter a valid contact number.");
-    }
-    if (!formData.workTickets) {
-      throw new Error(
-        "No work tickets provided. Please enter at least one work ticket."
-      );
-     
-    }
-    if (!formData.startDate){
-      throw new Error(
-        "Please provide starttdate"
-      );
-     
-    }
-    if (!formData.endDate){
-      throw new Error(
-        "Please provide end date"
-      );
-     
-    }
     try {
-      // if (addDocument) {
-      //   let singleDocument = null;
-      //   /* eslint-disable no-await-in-loop */
-      //   for (let i = 0; i < addDocument.length; i += 1) {
-      //     singleDocument = addDocument[i];
-      //     if (singleDocument.adddocument !== null) {
-      //       const docUploaded = await doFileUpload(
-      //         singleDocument,
-      //         uploadedEmail
-      //       );
-      //       const newDocument = {
-      //         fileKey: docUploaded.fileKey,
-      //         fileName: singleDocument.adddocument.name,
-      //       };
-      //       tmpAttachmentDocs.push(newDocument);
-      //     }
-      //   }
-      //   formData.uploadAttachment = JSON.stringify(tmpAttachmentDocs);
-      // }
+      setIsEdit(false);
+
+      if (!validateContactNumber(formData.contactNumber)) {
+        throw new Error(
+          "Invalid contact number. Please enter a valid contact number."
+        );
+      }
+      if (!formData.workTickets) {
+        throw new Error(
+          "No work tickets provided. Please enter at least one work ticket."
+        );
+      }
+      if (!formData.startDate) {
+        throw new Error("Please provide starttdate");
+      }
+      if (!formData.endDate) {
+        throw new Error("Please provide end date");
+      }
+      setSaveBtnStatus(true);
+
+      if (addDocument) {
+        let singleDocument = null;
+
+        /* eslint-disable no-await-in-loop */
+        for (let i = 0; i < addDocument.length; i += 1) {
+          if (addDocument[i].adddocument !== null) {
+            singleDocument = addDocument[i].adddocument;
+
+            if (singleDocument.adddocument !== null) {
+              const blobServiceClient = new BlobServiceClient(
+                `https://${storageAccountName}.blob.core.windows.net?${sasToken}`
+              );
+              const containerClient =
+                blobServiceClient.getContainerClient(containerName);
+              const blobName = new Date().getTime() + "-" + singleDocument.name;
+              const blockBlobClient =
+                containerClient.getBlockBlobClient(blobName);
+              await blockBlobClient.uploadData(singleDocument);
+              const newDocument = {
+                fileKey: blobName,
+                fileName: singleDocument.name,
+              };
+
+              tmpAttachmentDocs.push(newDocument);
+            }
+          }
+          formData.uploadAttachment = JSON.stringify(tmpAttachmentDocs);
+        }
+      }
 
       const response = await fetch(`/api/postInitiationWorkOrders`, {
         method: "POST",
@@ -289,44 +328,18 @@ const WorkRequestForm = () => {
       setSaveBtnStatus(false);
       setDismissingAlertShow(true);
       setalertVariant("danger");
-      setalertMessage(`Unable to save data.Please try after some time.`);
+      setalertMessage(`Unable to update data: ${error.message}`);
       console.error("Error saving work order:", error);
     }
   };
 
   // documents upload
-  // const handleDeleteDocument = (e) => {
-  //   seteditDocumentList(e);
-  // };
-  // const uploadAttachment = (uploadAttachments) => {
-  //   setaddDocument(uploadAttachments);
-  // };
-
-  // async function doFileUpload(singleDocument, uploadedEmail) {
-  //   const fileControl = singleDocument.adddocument;
-  //   const docUploaded = { s3SaveError: "", fileKey: "" };
-
-  //   try {
-  //     if (fileControl && fileControl.size > 26214400) {
-  //       alert(`Please pick a file smaller than 25MB.`);
-  //       docUploaded.s3SaveError = "Please pick a file smaller than 25MB";
-  //       return docUploaded;
-  //     }
-  //     const attachment = fileControl
-  //       ? await s3Upload(fileControl, uploadedEmail)
-  //       : null;
-  //     if (attachment != null) {
-  //       docUploaded.fileKey = attachment;
-  //     }
-  //   } catch (error) {
-  //     setDismissingAlertShow(true);
-  //     setalertVariant("danger");
-  //     setalertMessage(`Unable to upload File.Please try after some time.`);
-  //     console.log('error in uploading file', error);
-  //   }
-
-  //   return docUploaded;
-  // }
+  const handleDeleteDocument = (e) => {
+    seteditDocumentList(e);
+  };
+  const uploadAttachment = (uploadAttachments) => {
+    setaddDocument(uploadAttachments);
+  };
 
   const handleClear = () => {
     setFormData({
@@ -343,8 +356,10 @@ const WorkRequestForm = () => {
       workTickets: "",
       specialInstructions: "",
       designEngineerId: "",
-      fileUpload: null,
+      uploadAttachment: "",
     });
+    seteditDocumentList([]);
+    setClearFileName(true);
     setErrorMessage("");
   };
 
@@ -692,21 +707,22 @@ const WorkRequestForm = () => {
               </Card>
             </Col>
           </Row>
-          {/* <Row className="justify-content-center mt-4">
+          <Row className="justify-content-center mt-4">
             <Col md={8}>
-              <Card className="h-100" style={{ overflow: 'hidden' }}>
+              <Card className="h-100" style={{ overflow: "hidden" }}>
                 <Card.Body>
-                  <div style={{ width: '350%' }}>
+                  <div style={{ width: "350%" }}>
                     <InitiationFileUpload
                       documentDeleteHandler={handleDeleteDocument}
                       uploadAttachment={uploadAttachment}
                       editDocumentList={editDocumentList}
+                      clearFileName={clearFileName}
                     />
                   </div>
                 </Card.Body>
               </Card>
             </Col>
-          </Row> */}
+          </Row>
           <Row className="justify-content-center mt-4">
             <Col md={8} className="text-center">
               <Button

@@ -108,7 +108,7 @@ app.http("postInitiationWorkOrders", {
       workTickets,
       specialInstructions,
       designEngineerId,
-      fileUpload,
+      uploadAttachment,
     } = requestBody;
     const parseDate = (dateString) => {
       return dateString
@@ -153,7 +153,7 @@ RETURNING *
       workTickets,
       specialInstructions,
       designEngineerId,
-      fileUpload,
+      uploadAttachment,
     ];
 
     return await handleDatabaseOperation(query, params, context);

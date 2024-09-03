@@ -37,10 +37,16 @@ async function handleGetRequest(query, context) {
   try {
     const rows = await executeQuery(query);
     context.log('Query result:', rows);
+    const serializedRows = rows.map(row => {
+      return {
+        ...row,
+        uploadattachments: row.uploadattachments ? JSON.stringify(row.uploadattachments) : []
+      };
+    });
 
     return {
       status: 200,
-      body: JSON.stringify(rows),
+      body: JSON.stringify(serializedRows),
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*" // Allow CORS if needed
