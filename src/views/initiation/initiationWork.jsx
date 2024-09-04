@@ -659,7 +659,7 @@ const WorkRequestForm = () => {
                       <Form.Label>Latitude / Longitude</Form.Label>
                       <Form.Control
                         type="text"
-                        placeholder="Enter in the format latitude,longitude"
+                        placeholder="Enter in the format latitude,longitude. eg-38.8951, -77.0364"
                         name="latitudeLongitude"
                         value={formData.latitudeLongitude}
                         onChange={handleChange}

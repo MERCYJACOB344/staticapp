@@ -18,7 +18,10 @@ const initiation = {
   grid: lazy(() => import('./views/initiation/gridList'))
 
 };
+const gis = {
+  default: lazy(() => import('./views/gis/gisDefault')),
 
+};
 
 
 
@@ -73,7 +76,12 @@ const routesAndMenuItems = {
       ],
     },
 
-   
+    {
+      path: `${appRoot}/gis`,
+      component: gis.default,
+      label: 'menu.gis',
+    },
+    
    
 
 
