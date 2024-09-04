@@ -156,7 +156,7 @@ const GisDefault = () => {
     legendImgPending.src = "../../../img/pdfimage/denied.png";
     const legendLabelPending = document.createElement("div");
     legendLabelPending.className = "legend-label";
-    legendLabelPending.textContent = " QA/QC";
+    legendLabelPending.textContent = "QA/QC";
 
     legendItemPending.appendChild(legendImgPending);
     legendItemPending.appendChild(legendLabelPending);
@@ -329,7 +329,7 @@ const GisDefault = () => {
           url:
             filteredNotEqualCoordinates[i].status === "Completed"
               ? "../../../img/pdfimage/checked.png"
-              : filteredNotEqualCoordinates[i].status === "Submitted Request"
+              : filteredNotEqualCoordinates[i].status === "Submit Request"
               ? "../../../img/pdfimage/submit.png"
               : filteredNotEqualCoordinates[i].status === "QA/QC"
               ? "../../../img/pdfimage/denied.png"
