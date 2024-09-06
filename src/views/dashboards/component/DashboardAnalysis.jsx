@@ -2,7 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import { Chart, registerables } from 'chart.js';
 import { useSelector } from 'react-redux';
 
-const DashboardAnalysis = ({ submittedRequests, qaRequests, completedRequests, inProgressRequests }) => {
+const DashboardAnalysis = ({ changeChart,submittedRequests, qaRequests, completedRequests, inProgressRequests }) => {
+
+
   const { themeValues } = useSelector((state) => state.settings);
   const chartContainer = useRef(null);
 
@@ -131,7 +133,8 @@ const DashboardAnalysis = ({ submittedRequests, qaRequests, completedRequests, i
         myChart.destroy();
       }
     };
-  }, [submittedRequests, qaRequests, completedRequests, inProgressRequests]);
+  
+  }, [changeChart,submittedRequests, qaRequests, completedRequests, inProgressRequests]);
 
   return <canvas ref={chartContainer} />;
 };

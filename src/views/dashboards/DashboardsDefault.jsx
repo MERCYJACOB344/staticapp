@@ -42,6 +42,7 @@ const DashboardsPage = () => {
   const [alertVariant, setalertVariant] = useState("");
   const [alertMessage, setalertMessage] = useState("");
   const [addTaskValidation, setAddTaskValidation] = useState(false);
+  const [changeChart,setChangeChart] = useState(false);
   const headingRef = useRef(null);
 
   const [formData, setFormData] = React.useState({
@@ -59,7 +60,7 @@ const DashboardsPage = () => {
   };
 
   const handleDelete = (deletedProject, status) => {
-    console.log("delete", deletedProject);
+    
     deleteProjectData(deletedProject);
     setIsDeleted(!isDeleted);
 
@@ -93,7 +94,7 @@ const DashboardsPage = () => {
   };
 
   async function deleteProjectData(deletedProject) {
-    console.log("deletedproject", deletedProject);
+  
     try {
       const response = await fetch(`/api/deleteWorkOrder`, {
         method: "POST",
@@ -114,7 +115,7 @@ const DashboardsPage = () => {
   async function getData() {
     try {
       const response = await fetch("/api/getWorkOrders");
-      console.log("response", response);
+     
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
@@ -129,7 +130,7 @@ const DashboardsPage = () => {
         setDismissingAlertShow(false);
       } else {
         let projectData = data;
-        console.log("getdata", projectData);
+        
 
         const updatedProjectData = projectData.map((project) => ({
           ...project,
@@ -173,7 +174,7 @@ const DashboardsPage = () => {
   }
 
   async function addData(addedProjects) {
-    console.log("addedprojects", addedProjects);
+
 
     try {
       const response = await fetch(`/api/postWorkOrders`, {
@@ -195,7 +196,8 @@ const DashboardsPage = () => {
   }
 
   async function updateStatus(updateProject) {
-    console.log("update", updateProject);
+  
+    setChangeChart(false);
     try {
       const response = await fetch(`/api/updateStatus`, {
         method: "POST",
@@ -206,7 +208,9 @@ const DashboardsPage = () => {
       let statusWoId = updateProject.wo_id;
       let statusUpdated = updateProject.status;
       dispatch(updateProjectStatus({ statusWoId, status: statusUpdated }));
+      setChangeChart(true);
       setDismissingAlertShow(false);
+      
     } catch (error) {
       console.log("error in updating status", error);
       setDismissingAlertShow(true);
@@ -234,7 +238,7 @@ const DashboardsPage = () => {
       // setAddTaskValidation('All fields are required');
       return;
     }
-    console.log("formmmm", formData);
+  
     setAddTaskValidation(false);
     setalertVariant("");
     setalertMessage(``);
@@ -255,7 +259,7 @@ const DashboardsPage = () => {
     setAddTask(false);
     setAllProjectDetails([...allProjectDetails, formData]);
     let addedProjects = formData;
-    console.log("formdattttt", addedProjects);
+  
     addData(addedProjects);
     setFormData({
       project_name: "",
@@ -736,6 +740,7 @@ const DashboardsPage = () => {
                         qaRequests={qaProjectDetails}
                         completedRequests={completedProjectDetails}
                         inProgressRequests={inProgressProjectDetails}
+                        changeChart = {changeChart}
                       />
                     </div>
                   </Card>

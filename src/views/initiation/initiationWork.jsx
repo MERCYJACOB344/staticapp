@@ -538,7 +538,7 @@ const WorkRequestForm = () => {
                       <Form.Control
                         as="select"
                         name="requesterId"
-                        value={formData.requesterId}
+                        value={formData.requesterId || ""}
                         onChange={handleChange}
                       >
                         <option>Select Requestor</option>
@@ -569,7 +569,7 @@ const WorkRequestForm = () => {
                       <Form.Control
                         as="select"
                         name="workTypeId"
-                        value={formData.workTypeId}
+                        value={formData.workTypeId || "" }
                         onChange={handleChange}
                       >
                         <option>Select Work Classification</option>
@@ -596,7 +596,7 @@ const WorkRequestForm = () => {
                       <Form.Control
                         as="select"
                         name="authorizerId"
-                        value={formData.authorizerId}
+                        value={formData.authorizerId || ""}
                         onChange={handleChange}
                       >
                         <option>Select Authorizer</option>
@@ -644,7 +644,7 @@ const WorkRequestForm = () => {
                       <Form.Control
                         as="select"
                         name="status"
-                        value={formData.status}
+                        value={formData.status || ""}
                         onChange={handleChange}
                       >
                         <option>Select Status</option>
@@ -691,7 +691,7 @@ const WorkRequestForm = () => {
                       <Form.Control
                         as="select"
                         name="designEngineerId"
-                        value={formData.designEngineerId}
+                        value={formData.designEngineerId || ""}
                         onChange={handleChange}
                       >
                         <option>Select Design Engineer</option>
